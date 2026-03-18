@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 from app.database import get_db
 from app.models.database import UserDB
 from app.models.user import UserCreate, User, Token
@@ -7,6 +8,10 @@ from app.utils.security import get_password_hash, verify_password
 from datetime import datetime
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
+
+class LoginRequest(BaseModel):
+    phone: str
+    password: str
 
 @router.post("/register", response_model=User)
 async def register(user: UserCreate, db: Session = Depends(get_db)):
@@ -29,9 +34,9 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
     return db_user
 
 @router.post("/login")
-async def login(phone: str, password: str, db: Session = Depends(get_db)):
-    user = db.query(UserDB).filter(UserDB.phone == phone).first()
-    if not user or not verify_password(password, user.hashed_password):
+async def login(credentials: LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(UserDB).filter(UserDB.phone == credentials.phone).first()
+    if not user or not verify_password(credentials.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect phone or password"

@@ -10,7 +10,7 @@
 
 
 
-\## Week 1: Auth Pages
+\## Week 1: Auth Pages    venv\Scripts\activate
 
 
 
