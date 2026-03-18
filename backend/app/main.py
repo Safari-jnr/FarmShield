@@ -20,6 +20,9 @@ app.add_middleware(
 # Include routers
 app.include_router(auth.router)
 
+from app.routes import safety
+app.include_router(safety.router)
+
 @app.get("/")
 async def root():
     return {"message": "FarmShield API is running 🚀"}
