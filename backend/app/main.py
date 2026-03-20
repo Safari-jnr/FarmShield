@@ -1,14 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
-from app.routes import auth
+from app.routes import auth, checkins, safety
 
-# Create database tables
+# Create database tables on startup
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="FarmShield API", version="1.0.0")
 
-# CORS for frontend
+# CORS for frontend communication
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
@@ -19,13 +19,12 @@ app.add_middleware(
 
 # Include routers
 app.include_router(auth.router)
-
-from app.routes import safety
+app.include_router(checkins.router)
 app.include_router(safety.router)
 
 @app.get("/")
 async def root():
-    return {"message": "FarmShield API is running 🚀"}
+    return {"message": "FarmShield API is running"}
 
 @app.get("/health")
 async def health_check():
