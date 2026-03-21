@@ -1,15 +1,51 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useState, useEffect } from "react";
 
-function App() {
+import "./styles/globals.css";
+
+import LoginPage from "./pages/Login";
+import RegisterPage from "./pages/Register";
+import DashboardPage from "./pages/Dashboard";
+import MapPage from "./pages/Map";
+import ReportPage from "./pages/Report";
+import BottomNav from "./components/BottomNav";
+import { isLoggedIn, clearSession } from "./services/api";
+
+export default function App() {
+  const [screen, setScreen] = useState("login");
+  const [page, setPage] = useState("dashboard");
+
+  useEffect(() => {
+    if (isLoggedIn()) setScreen("app");
+    else setScreen("login");
+  }, []);
+
+  function handleLogin() { setScreen("app"); }
+  function handleLogout() { clearSession(); setScreen("login"); }
+
+  if (screen === "login") {
+    return (
+      <LoginPage
+        onLogin={handleLogin}
+        goRegister={() => setScreen("register")}
+      />
+    );
+  }
+
+  if (screen === "register") {
+    return (
+      <RegisterPage
+        onLogin={handleLogin}
+        goLogin={() => setScreen("login")}
+      />
+    );
+  }
+
   return (
-    <Router>
-      <div style={{ padding: '20px', fontFamily: 'Arial' }}>
-        <h1>🛡️ FarmShield</h1>
-        <p>Loading...</p>
-      </div>
-    </Router>
+    <div className="app">
+      {page === "dashboard" && <DashboardPage />}
+      {page === "map" && <MapPage />}
+      {page === "report" && <ReportPage />}
+      <BottomNav page={page} setPage={setPage} />
+    </div>
   );
 }
-
-export default App;
