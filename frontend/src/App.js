@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 
 import "./styles/globals.css";
 
@@ -7,6 +7,7 @@ import RegisterPage from "./pages/Register";
 import DashboardPage from "./pages/Dashboard";
 import MapPage from "./pages/Map";
 import ReportPage from "./pages/Report";
+import SoilTestingPage from "./pages/SoilTesting";
 import BottomNav from "./components/BottomNav";
 import { isLoggedIn, clearSession } from "./services/api";
 
@@ -43,8 +44,9 @@ export default function App() {
   return (
     <div className="app">
       {page === "dashboard" && <DashboardPage />}
-      {page === "map" && <MapPage />}
-      {page === "report" && <ReportPage />}
+      {page === "map"       && <MapPage />}
+      {page === "soil"      && <SoilTestingPage />}
+      {page === "report"    && <ReportPage />}
       <BottomNav page={page} setPage={setPage} />
     </div>
   );
