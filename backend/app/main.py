@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
-from app.routes import auth, checkins, safety
+from app.routes import auth, checkins, safety,reports,rewards
 
 # Create database tables on startup
 Base.metadata.create_all(bind=engine)
@@ -21,6 +21,8 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(checkins.router)
 app.include_router(safety.router)
+app.include_router(reports.router)
+app.include_router(rewards.router)
 
 @app.get("/")
 async def root():

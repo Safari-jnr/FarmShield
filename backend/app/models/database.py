@@ -14,6 +14,11 @@ class UserDB(Base):
     location_lng = Column(Float, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    points = Column(Integer, default=0)
+    reports_submitted = Column(Integer, default=0)
+    reports_verified = Column(Integer, default=0)
+    badge_level = Column(String, default="Seedling")  # Seedling, Sprout, Farmer, Guardian
+
 class CheckInDB(Base):
     __tablename__ = "checkins"
     
