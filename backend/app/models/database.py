@@ -41,3 +41,24 @@ class ReportDB(Base):
     threat_type = Column(String)
     verified = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+class SoilTestDB(Base):
+    __tablename__ = "soil_tests"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, index=True)
+    location_lat = Column(Float, nullable=True)
+    location_lng = Column(Float, nullable=True)
+    
+    # Soil measurements
+    ph_level = Column(Float)  # 0-14
+    nitrogen = Column(Float)  # mg/kg
+    phosphorus = Column(Float)  # mg/kg
+    potassium = Column(Float)  # mg/kg
+    moisture = Column(Float, nullable=True)  # percentage (optional)
+    
+    # Results
+    soil_health = Column(String)  # "Poor", "Fair", "Good", "Excellent"
+    recommendations = Column(String)  # JSON string or text
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
