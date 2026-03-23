@@ -110,6 +110,44 @@
 
 \- Test on phone browser
 
+
+Rewards Task---------------------------------
+## Frontend Tasks - Reward System (New)
+
+### Task: Rewards Dashboard Page
+**File**: `src/pages/Rewards.js`
+**API**: `GET /rewards/{user_id}`
+
+Display:
+- Current points (big number)
+- Badge level with icon (🌱 Seedling, 🌿 Sprout, 🌾 Farmer, 🏆 Guardian)
+- Progress bar to next badge
+- Reports submitted count
+- Reports verified count
+
+### Task: Leaderboard Page
+**File**: `src/pages/Leaderboard.js`
+**API**: `GET /rewards/leaderboard/top`
+
+Display:
+- Top 10 farmers list
+- Rank number, name, points, badge
+- Highlight current user
+
+### Task: Points Animation
+**File**: `src/components/PointsAnimation.js`
+
+When user submits report:
+- Show "+10 points!" floating animation
+- Update points display in real-time
+
+### Task: Badge Unlock Notification
+**File**: `src/components/BadgeNotification.js`
+
+When user levels up (e.g., Seedling → Sprout):
+- Show congratulation modal
+- Display new badge icon
+
 \- Make buttons big for farmers
 
 \- Simple, clear UI (many users have low literacy)
