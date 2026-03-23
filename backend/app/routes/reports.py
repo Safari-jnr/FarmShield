@@ -40,18 +40,27 @@ async def create_report(report: ReportCreate, db: Session = Depends(get_db)):
         location_lat=report.lat,
         location_lng=report.lng,
         photo_url=report.photo_url,
-        verified=False,  # Not verified yet
+        verified=False,
         created_at=datetime.utcnow()
     )
     db.add(db_report)
+    
+    # Add reward points to user
+    user = db.query(UserDB).filter(UserDB.id == report.user_id).first()
+    if user:
+        user.points += 10  # +10 for reporting
+        user.reports_submitted += 1
+        
+        # Update badge level based on points
+        if user.points >= 1000:
+            user.badge_level = "Guardian"
+        elif user.points >= 500:
+            user.badge_level = "Farmer"
+        elif user.points >= 100:
+            user.badge_level = "Sprout"
+    
     db.commit()
     db.refresh(db_report)
-    
-    # Add reward points to user (10 points for reporting)
-    user = db.query(UserDB).filter(UserDB.id == report.user_id).first()
-    reward_points = 10
-    
-    # TODO: Update user points in database (add points column to UserDB)
     
     return {
         "id": db_report.id,
@@ -60,10 +69,9 @@ async def create_report(report: ReportCreate, db: Session = Depends(get_db)):
         "threat_type": db_report.threat_type,
         "verified": db_report.verified,
         "created_at": db_report.created_at,
-        "reward_points": reward_points,
-        "message": f"Report submitted! +{reward_points} points earned. Verification pending."
+        "reward_points": 10,
+        "message": f"Report submitted! +10 points earned. Total: {user.points if user else 0} points. Verification pending."
     }
-
 @router.get("/verified")
 async def get_verified_threats(
     lat: float,
