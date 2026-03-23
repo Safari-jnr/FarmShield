@@ -6,6 +6,7 @@ from app.models.database import ReportDB, UserDB
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, timedelta
+from app.services.sms_service import SMSService
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
@@ -130,4 +131,16 @@ async def crowd_verify_reports(db: Session = Depends(get_db)):
     return {
         "verified_count": verified_count,
         "message": f"{verified_count} reports verified via crowd verification"
+    }
+
+@router.get("/sms-logs")
+async def get_sms_logs():
+    """
+    View all mock SMS sent (for demo/testing)
+    """
+    logs = SMSService.get_mock_logs()
+    return {
+        "count": len(logs),
+        "logs": logs,
+        "note": "This is MOCK SMS. Real Africa's Talking integration pending."
     }
