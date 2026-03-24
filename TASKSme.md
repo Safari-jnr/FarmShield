@@ -114,3 +114,107 @@ const fetchSmsLogs = async () => {
 
 };
 
+
+
+
+
+## 🗺️ Sprint Expansion: Geospatial & Risk Visualization
+**Module:** Mapping Engine (Phase 2)  
+**Objective:** Visualize regional risk zones and farmer distribution via GeoJSON integration.
+
+---
+
+### 📡 Map API Specifications
+The following Geospatial endpoints are now **Live** for Frontend consumption:
+
+| Endpoint | Method | Response Type | Application |
+| :--- | :--- | :--- | :--- |
+| `/map/risk-zones` | `GET` | `GeoJSON` | Dynamic Risk Overlays (Red/Yellow/Green) |
+| `/map/nearby-farmers` | `GET` | `GeoJSON` | Real-time Farmer Position Markers |
+| `/map/soil-heatmap` | `GET` | `GeoJSON` | Soil Quality & Nutrient Heatmap |
+
+---
+
+### 🎨 Frontend Task: Geospatial Intelligence UI
+**Lead:** @Teammate  
+**Core Component:** `src/components/RiskMap.js`  
+**Required Dependencies:** ```bash
+npm install leaflet react-leaflet
+
+🛠️ Implementation Requirements:
+[ ] Risk Perimeters: Render RED (#ef4444) 2km radius and YELLOW (#eab308) 5km radius circles around verified threats.
+
+[ ] Presence Tracking: Render GREEN (#22c55e) markers for all farmers currently "Checked In."
+
+[ ] Soil Analytics: Overlay colored polygons/points based on the soil health heatmap data.
+
+[ ] Geolocation: Implement navigator.geolocation to auto-center the map on the user’s current coordinates.
+
+
+// Example: Consuming Risk Zone GeoJSON
+const fetchRiskZones = async (lat, lng) => {
+    const response = await fetch(`http://localhost:8000/map/risk-zones?lat=${lat}&lng=${lng}`);
+    const geojson = await response.json();
+    return geojson;
+};
+
+// Usage within <MapContainer />:
+// <GeoJSON data={geojson} style={(feature) => ({ color: feature.properties.color })} />
+
+Gemini said
+This is the professional GitHub Markdown addition for the Map integration. I have integrated this into a "Sprint Expansion" format that fits perfectly with the previous task lists.
+
+You can copy and paste this directly into your GitHub Issue or TASKS.md:
+
+Markdown
+## 🗺️ Sprint Expansion: Geospatial & Risk Visualization
+**Module:** Mapping Engine (Phase 2)  
+**Objective:** Visualize regional risk zones and farmer distribution via GeoJSON integration.
+
+---
+
+### 📡 Map API Specifications
+The following Geospatial endpoints are now **Live** for Frontend consumption:
+
+| Endpoint | Method | Response Type | Application |
+| :--- | :--- | :--- | :--- |
+| `/map/risk-zones` | `GET` | `GeoJSON` | Dynamic Risk Overlays (Red/Yellow/Green) |
+| `/map/nearby-farmers` | `GET` | `GeoJSON` | Real-time Farmer Position Markers |
+| `/map/soil-heatmap` | `GET` | `GeoJSON` | Soil Quality & Nutrient Heatmap |
+
+---
+
+### 🎨 Frontend Task: Geospatial Intelligence UI
+**Lead:** @Teammate  
+**Core Component:** `src/components/RiskMap.js`  
+**Required Dependencies:** ```bash
+npm install leaflet react-leaflet
+🛠️ Implementation Requirements:
+[ ] Risk Perimeters: Render RED (#ef4444) 2km radius and YELLOW (#eab308) 5km radius circles around verified threats.
+
+[ ] Presence Tracking: Render GREEN (#22c55e) markers for all farmers currently "Checked In."
+
+[ ] Soil Analytics: Overlay colored polygons/points based on the soil health heatmap data.
+
+[ ] Geolocation: Implement navigator.geolocation to auto-center the map on the user’s current coordinates.
+
+🏗️ Technical Example (Leaflet Integration):
+JavaScript
+// Example: Consuming Risk Zone GeoJSON
+const fetchRiskZones = async (lat, lng) => {
+    const response = await fetch(`http://localhost:8000/map/risk-zones?lat=${lat}&lng=${lng}`);
+    const geojson = await response.json();
+    return geojson;
+};
+
+// Usage within <MapContainer />:
+// <GeoJSON data={geojson} style={(feature) => ({ color: feature.properties.color })} />
+🎨 Design System: Map Palette
+Zone Type	Hex Code	Utility
+Danger	#ef4444	High-risk verified threats (2km radius)
+Caution	#eab308	Unverified reports or perimeter (5km radius)
+Safe/Active	#22c55e	Farmer markers and verified safe zones
+
+
+
+
