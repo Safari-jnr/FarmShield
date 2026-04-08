@@ -16,16 +16,14 @@ class UserRewards(BaseModel):
     check_ins: int
     next_badge_points: int
     
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 class LeaderboardEntry(BaseModel):
     name: str
     points: int
     badge_level: str
     
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 @router.get("/leaderboard/top", response_model=List[LeaderboardEntry])
 async def get_leaderboard(db: Session = Depends(get_db), limit: int = 10):

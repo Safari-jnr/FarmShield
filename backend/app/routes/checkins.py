@@ -20,8 +20,7 @@ class CheckinResponse(BaseModel):
     points_earned: int
     message: str
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 @router.post("/")
 async def create_checkin(

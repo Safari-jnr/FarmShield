@@ -18,8 +18,7 @@ class MapDataResponse(BaseModel):
     type: str = "FeatureCollection"
     features: List[RiskZone]
     
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 def calculate_distance(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
     """Calculate distance in km between two points using Haversine formula"""

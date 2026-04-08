@@ -34,8 +34,7 @@ class SoilTestResponse(BaseModel):
     soil_health: str
     recommendations: List[str]
     created_at: datetime
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 # ─── IoT Device Payload ──────────────────────────────────────────────────────
 # Future: ESP32 / Arduino sensors will POST to /soil/iot/ingest
@@ -316,8 +315,7 @@ class SoilTestResponse(BaseModel):
     recommendations: List[str]
     created_at: datetime
     
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 def analyze_soil(ph: float, n: float, p: float, k: float) -> tuple:
     score = 0
