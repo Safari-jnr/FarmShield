@@ -1,13 +1,18 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import Logo from "../components/Logo";
 import Toast, { useToast } from "../components/Toast";
 import { apiFetch, saveSession } from "../services/api";
 
 export default function RegisterPage({ onLogin, goLogin }) {
-  const [form, setForm] = useState({ phone: "", name: "", password: "", language: "en" });
+  const [form, setForm] = useState({ 
+    phone: "", 
+    name: "", 
+    email: "",
+    password: "", 
+    language: "en" 
+  });
   const [loading, setLoading] = useState(false);
-  const [toast,   showToast]  = useToast();
+  const [toast, showToast] = useToast();
 
   const upd = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
@@ -19,11 +24,30 @@ export default function RegisterPage({ onLogin, goLogin }) {
         method: "POST",
         body: JSON.stringify(form),
       });
-      saveSession(data.token || data.access_token, data.user || { name: form.name });
+      
+      const user = {
+        id: data.user?.id,
+        name: data.user?.name || form.name,
+        phone: data.user?.phone || form.phone,
+        email: data.user?.email || form.email,
+        language: data.user?.language || form.language,
+        points: data.user?.points || 0,
+        badge_level: data.user?.badge_level || "Seedling"
+      };
+      saveSession(data.access_token, user);
       showToast("Account created", "success");
       setTimeout(onLogin, 600);
     } catch {
-      saveSession("demo_token", { name: form.name || "Farmer" });
+      // ✅ Demo user with proper id for rewards to work
+      const demoUser = {
+        id: 1,
+        name: form.name || "Demo Farmer",
+        phone: form.phone || "+2348000000000",
+        language: form.language,
+        badge_level: "Seedling",
+        points: 0
+      };
+      saveSession("demo_token", demoUser);
       showToast("Registered (demo mode)", "success");
       setTimeout(onLogin, 600);
     } finally {
@@ -41,15 +65,46 @@ export default function RegisterPage({ onLogin, goLogin }) {
           <form onSubmit={handleSubmit}>
             <div className="field">
               <label htmlFor="name">Full Name</label>
-              <input id="name" type="text" placeholder="Your name" value={form.name} onChange={upd("name")} required />
+              <input 
+                id="name" 
+                type="text" 
+                placeholder="Your name" 
+                value={form.name} 
+                onChange={upd("name")} 
+                required 
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="email">Email Address <span style={{fontWeight:400,textTransform:"none"}}>(for alerts)</span></label>
+              <input 
+                id="email" 
+                type="email" 
+                placeholder="you@example.com" 
+                value={form.email} 
+                onChange={upd("email")} 
+              />
             </div>
             <div className="field">
               <label htmlFor="phone">Phone Number</label>
-              <input id="phone" type="tel" placeholder="+234 800 000 0000" value={form.phone} onChange={upd("phone")} required />
+              <input 
+                id="phone" 
+                type="tel" 
+                placeholder="+234 800 000 0000" 
+                value={form.phone} 
+                onChange={upd("phone")} 
+                required 
+              />
             </div>
             <div className="field">
               <label htmlFor="password">Password</label>
-              <input id="password" type="password" placeholder="Choose a password" value={form.password} onChange={upd("password")} required />
+              <input 
+                id="password" 
+                type="password" 
+                placeholder="Choose a password" 
+                value={form.password} 
+                onChange={upd("password")} 
+                required 
+              />
             </div>
             <div className="field">
               <label htmlFor="language">Language</label>

@@ -17,11 +17,28 @@ export default function LoginPage({ onLogin, goRegister }) {
         method: "POST",
         body: JSON.stringify({ phone, password: pass }),
       });
-      saveSession(data.token || data.access_token, data.user || { name: phone });
+      
+      const user = {
+        id: data.user?.id,
+        name: data.user?.name || phone,
+        phone: data.user?.phone || phone,
+        language: data.user?.language || "en",
+        points: data.user?.points || 0,
+        badge_level: data.user?.badge_level || "Seedling"
+      };
+      saveSession(data.access_token, user);
       showToast("Welcome back", "success");
       setTimeout(onLogin, 600);
     } catch {
-      saveSession("demo_token", { name: "Demo Farmer" });
+      // ✅ Demo user with proper id for rewards to work
+      const demoUser = {
+        id: 1,
+        name: "Demo Farmer",
+        phone: phone || "+2348000000000",
+        badge_level: "Seedling",
+        points: 0
+      };
+      saveSession("demo_token", demoUser);
       showToast("Signed in (demo mode)", "success");
       setTimeout(onLogin, 600);
     } finally {
@@ -39,11 +56,25 @@ export default function LoginPage({ onLogin, goRegister }) {
           <form onSubmit={handleSubmit}>
             <div className="field">
               <label htmlFor="phone">Phone Number</label>
-              <input id="phone" type="tel" placeholder="+234 800 000 0000" value={phone} onChange={(e) => setPhone(e.target.value)} required />
+              <input 
+                id="phone" 
+                type="tel" 
+                placeholder="+234 800 000 0000" 
+                value={phone} 
+                onChange={(e) => setPhone(e.target.value)} 
+                required 
+              />
             </div>
             <div className="field">
               <label htmlFor="password">Password</label>
-              <input id="password" type="password" placeholder="Enter your password" value={pass} onChange={(e) => setPass(e.target.value)} required />
+              <input 
+                id="password" 
+                type="password" 
+                placeholder="Enter your password" 
+                value={pass} 
+                onChange={(e) => setPass(e.target.value)} 
+                required 
+              />
             </div>
             <button className="btn-primary" type="submit" disabled={loading}>
               {loading ? <div className="spinner" /> : "Sign In"}

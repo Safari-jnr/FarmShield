@@ -13,6 +13,7 @@ class UserRewards(BaseModel):
     badge_level: str
     reports_submitted: int
     reports_verified: int
+    check_ins: int
     next_badge_points: int
     
     class Config:
@@ -25,6 +26,19 @@ class LeaderboardEntry(BaseModel):
     
     class Config:
         from_attributes = True
+
+@router.get("/leaderboard/top", response_model=List[LeaderboardEntry])
+async def get_leaderboard(db: Session = Depends(get_db), limit: int = 10):
+    top_users = db.query(UserDB).order_by(UserDB.points.desc()).limit(limit).all()
+    
+    return [
+        {
+            "name": user.name or user.phone,
+            "points": user.points,
+            "badge_level": user.badge_level
+        }
+        for user in top_users
+    ]
 
 @router.get("/{user_id}", response_model=UserRewards)
 async def get_user_rewards(user_id: int, db: Session = Depends(get_db)):
@@ -47,18 +61,6 @@ async def get_user_rewards(user_id: int, db: Session = Depends(get_db)):
         "badge_level": user.badge_level,
         "reports_submitted": user.reports_submitted,
         "reports_verified": user.reports_verified,
+        "check_ins": user.check_ins or 0,
         "next_badge_points": max(0, next_badge_points)
     }
-
-@router.get("/leaderboard/top", response_model=List[LeaderboardEntry])
-async def get_leaderboard(db: Session = Depends(get_db), limit: int = 10):
-    top_users = db.query(UserDB).order_by(UserDB.points.desc()).limit(limit).all()
-    
-    return [
-        {
-            "name": user.name or user.phone,  # Use phone if name not set
-            "points": user.points,
-            "badge_level": user.badge_level
-        }
-        for user in top_users
-    ]

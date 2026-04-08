@@ -7,6 +7,7 @@ class UserDB(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     phone = Column(String, unique=True, index=True)
+    email = Column(String, nullable=True, index=True)
     name = Column(String)
     hashed_password = Column(String)
     language = Column(String, default="en")
@@ -17,6 +18,7 @@ class UserDB(Base):
     points = Column(Integer, default=0)
     reports_submitted = Column(Integer, default=0)
     reports_verified = Column(Integer, default=0)
+    check_ins = Column(Integer, default=0)
     badge_level = Column(String, default="Seedling")  # Seedling, Sprout, Farmer, Guardian
 
 class CheckInDB(Base):
@@ -61,4 +63,17 @@ class SoilTestDB(Base):
     soil_health = Column(String)  # "Poor", "Fair", "Good", "Excellent"
     recommendations = Column(String)  # JSON string or text
     
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class NotificationLogDB(Base):
+    __tablename__ = "notification_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, nullable=True)
+    channel = Column(String)          # "email" | "sms" | "in_app"
+    recipient = Column(String)        # email address or phone
+    subject = Column(String, nullable=True)
+    message = Column(String)
+    status = Column(String, default="sent")   # sent | failed
+    threat_type = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)

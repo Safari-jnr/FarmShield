@@ -1,10 +1,10 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import Toast, { useToast } from "../components/Toast";
-import { apiFetch, getLocation, getUser } from "../services/api";
+import { apiFetch, getLocation, getUser, clearSession } from "../services/api";
 import { RISK_DESC } from "../constants";
 
-export default function DashboardPage() {
+export default function DashboardPage({ setPage, onLogout }) {
   const user = getUser();
   const [risk,      setRisk]      = useState("GREEN");
   const [checkedIn, setCheckedIn] = useState(false);
@@ -12,6 +12,8 @@ export default function DashboardPage() {
   const [alert,     setAlert]     = useState(null);
   const [loading,   setLoading]   = useState(false);
   const [toast,     showToast]    = useToast();
+  const [points,    setPoints]    = useState(0);      // ADD: points state
+  const [badge,     setBadge]     = useState("Seedling"); // ADD: badge state
 
   useEffect(() => {
     async function poll() {
@@ -22,7 +24,22 @@ export default function DashboardPage() {
         if (d.alert)          setAlert(d.alert);
       } catch {}
     }
+    
+    // ADD: Fetch user rewards
+    async function fetchRewards() {
+      try {
+        const userData = getUser();
+        if (userData?.id) {
+          const rewards = await apiFetch(`/rewards/${userData.id}`);
+          setPoints(rewards.points || 0);
+          setBadge(rewards.badge_level || "Seedling");
+        }
+      } catch {}
+    }
+    
     poll();
+    fetchRewards();  // ADD
+    
     const id = setInterval(poll, 5 * 60 * 1000);
     return () => clearInterval(id);
   }, []);
@@ -31,14 +48,21 @@ export default function DashboardPage() {
     setLoading(true);
     try {
       const loc = await getLocation();
-      await apiFetch("/checkins", { method: "POST", body: JSON.stringify(loc) });
+      const fd = new FormData();
+      fd.append("user_id", user?.id || 1);
+      fd.append("lat", loc.lat);
+      fd.append("lng", loc.lon);
+      const res = await apiFetch("/checkins/", { method: "POST", headers: {}, body: fd });
       const next = !checkedIn;
       setCheckedIn(next);
-      showToast(next ? "Checked in successfully" : "Checked out safely", "success");
-    } catch {
+      showToast(next ? `Checked in! +5 points` : "Checked out safely", "success");
+      if (next) setPoints(p => p + 5);
+    } catch (e) {
+      // "Already checked in today" is still a success state
+      const alreadyIn = e.message?.includes("Already checked in");
       const next = !checkedIn;
       setCheckedIn(next);
-      showToast(next ? "Checked in (demo mode)" : "Checked out (demo mode)", "success");
+      showToast(alreadyIn ? "Already checked in today" : (next ? "Checked in (demo)" : "Checked out (demo)"), alreadyIn ? "error" : "success");
     } finally {
       setLoading(false);
     }
@@ -51,10 +75,49 @@ export default function DashboardPage() {
           <div className="dash-greeting">Good morning</div>
           <div className="dash-name">{user.name}</div>
         </div>
-        <div className="dash-shield">
-          <svg viewBox="0 0 24 24">
-            <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z" />
-          </svg>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="dash-shield">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z" />
+            </svg>
+          </div>
+          <button
+            onClick={onLogout}
+            className="dash-logout-btn"
+            style={{
+              background: 'none', border: '1px solid #e2e8f0',
+              borderRadius: '8px', padding: '6px 12px',
+              fontSize: '13px', color: '#64748b', cursor: 'pointer'
+            }}
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+
+      {/* ADD: Rewards Card */}
+      <div 
+        className="rewards-card" 
+        onClick={() => setPage("rewards")}
+        style={{
+          background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+          color: 'white',
+          padding: '16px',
+          borderRadius: '12px',
+          marginBottom: '16px',
+          cursor: 'pointer',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}
+      >
+        <div>
+          <div style={{ fontSize: '12px', opacity: 0.9 }}>Your Points</div>
+          <div style={{ fontSize: '28px', fontWeight: 'bold' }}>{points}</div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontSize: '12px', opacity: 0.9 }}>Badge</div>
+          <div style={{ fontSize: '16px', fontWeight: '600' }}>🌱 {badge}</div>
         </div>
       </div>
 
@@ -79,6 +142,38 @@ export default function DashboardPage() {
         <div className="risk-label">Current Risk Level</div>
         <div className="risk-level">{risk}</div>
         <div className="risk-desc">{RISK_DESC[risk]}</div>
+      </div>
+
+      {/* ADD: Quick Actions */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+        <button 
+          onClick={() => setPage("map")}
+          style={{
+            padding: '16px',
+            borderRadius: '12px',
+            border: 'none',
+            background: '#f0fdf4',
+            color: '#16a34a',
+            cursor: 'pointer',
+            fontWeight: '600'
+          }}
+        >
+          🗺️ View Risk Map
+        </button>
+        <button 
+          onClick={() => setPage("notifications")}
+          style={{
+            padding: '16px',
+            borderRadius: '12px',
+            border: 'none',
+            background: '#fef2f2',
+            color: '#dc2626',
+            cursor: 'pointer',
+            fontWeight: '600'
+          }}
+        >
+          🔔 Alerts History
+        </button>
       </div>
 
       <div className="stat-row">

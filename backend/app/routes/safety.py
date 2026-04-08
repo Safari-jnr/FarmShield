@@ -9,8 +9,8 @@ router = APIRouter(prefix="/safety", tags=["safety"])
 
 @router.get("/check")
 async def check_safety(
-    lat: float = Query(..., description="Latitude"),
-    lng: float = Query(..., description="Longitude"),
+    lat: float = Query(9.0765, description="Latitude"),
+    lng: float = Query(7.3986, description="Longitude"),
     db: Session = Depends(get_db)
 ):
     # Check for verified threats within 24 hours
@@ -37,6 +37,7 @@ async def check_safety(
     
     return {
         "status": status,
+        "risk_level": status,
         "farmers_nearby": farmers_nearby,
         "threats_reported": threat_count,
         "message": f"Area status: {status}. {threat_count} threats in last 24h."

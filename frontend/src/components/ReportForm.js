@@ -1,7 +1,7 @@
 import React from "react";
 import { useState } from "react";
 import Toast, { useToast } from "./Toast";
-import { apiFetch } from "../services/api";
+import { apiFetch, getLocation, getUser } from "../services/api";
 import { THREAT_TYPES } from "../constants";
 
 const THREAT_ICONS = {
@@ -23,12 +23,17 @@ export default function ReportForm() {
   async function handleSubmit() {
     if (!threat) { showToast("Please select a threat type", "error"); return; }
     setLoading(true);
-    const fd = new FormData();
-    fd.append("description", desc);
-    fd.append("threat_type", threat);
-    if (photo) fd.append("photo", photo);
     try {
-      await apiFetch("/reports", { method: "POST", headers: {}, body: fd });
+      const loc = await getLocation();
+      const user = getUser();
+      const fd = new FormData();
+      fd.append("description", desc || "");
+      fd.append("threat_type", threat);
+      fd.append("user_id", user?.id || 1);
+      fd.append("lat", loc.lat);
+      fd.append("lng", loc.lon);
+      if (photo) fd.append("photo", photo);
+      await apiFetch("/reports/", { method: "POST", headers: {}, body: fd });
       showToast("Report submitted — thank you", "success");
       setThreat(""); setDesc(""); setPhoto(null);
     } catch {

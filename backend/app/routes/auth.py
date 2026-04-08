@@ -13,7 +13,7 @@ class LoginRequest(BaseModel):
     phone: str
     password: str
 
-@router.post("/register", response_model=User)
+@router.post("/register")
 async def register(user: UserCreate, db: Session = Depends(get_db)):
     # Check if user exists
     db_user = db.query(UserDB).filter(UserDB.phone == user.phone).first()
@@ -24,6 +24,7 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
     hashed_password = get_password_hash(user.password)
     db_user = UserDB(
         phone=user.phone,
+        email=getattr(user, 'email', None),
         name=user.name,
         hashed_password=hashed_password,
         language=user.language
@@ -31,7 +32,19 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    return db_user
+
+    return {
+        "access_token": f"token-{db_user.id}",
+        "token_type": "bearer",
+        "user": {
+            "id": db_user.id,
+            "name": db_user.name,
+            "phone": db_user.phone,
+            "language": db_user.language,
+            "points": db_user.points,
+            "badge_level": db_user.badge_level
+        }
+    }
 
 @router.post("/login")
 async def login(credentials: LoginRequest, db: Session = Depends(get_db)):
@@ -43,4 +56,15 @@ async def login(credentials: LoginRequest, db: Session = Depends(get_db)):
         )
     
     # For now, return simple token (we'll add JWT later)
-    return {"access_token": f"token-{user.id}", "token_type": "bearer"}
+    return {
+        "access_token": f"token-{user.id}",
+        "token_type": "bearer",
+        "user": {
+            "id": user.id,
+            "name": user.name,
+            "phone": user.phone,
+            "language": user.language,
+            "points": user.points,
+            "badge_level": user.badge_level
+        }
+    }
