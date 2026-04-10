@@ -85,7 +85,6 @@ export default function ReportForm() {
         id="photo-input"
         type="file"
         accept="image/*"
-        capture="environment"
         style={{ display: "none" }}
         onChange={(e) => setPhoto(e.target.files[0])}
       />

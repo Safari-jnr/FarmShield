@@ -51,13 +51,15 @@ export default function SettingsPage() {
   const [showPw, setShowPw]       = useState(false);
 
   useEffect(() => {
-    // Fetch latest from server in case email was added
     if (currentUser?.id) {
       apiFetch(`/settings/${currentUser.id}`)
         .then(data => {
           setName(data.name || "");
           setEmail(data.email || "");
           setLanguage(data.language || "en");
+          // Update session with latest points/badge from server
+          const token = localStorage.getItem("fs_token");
+          saveSession(token, { ...currentUser, ...data });
         })
         .catch(() => {});
     }

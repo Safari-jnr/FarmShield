@@ -55,7 +55,9 @@ export default function ReportHistory() {
               </div>
               {report.photo_url && (
                 <img 
-                  src={`http://localhost:8000/${report.photo_url}`} 
+                  src={report.photo_url.startsWith("http") 
+                    ? report.photo_url 
+                    : `${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/${report.photo_url}`} 
                   alt="Report" 
                   style={{width: "100%", maxHeight: "200px", objectFit: "cover", borderRadius: "8px", marginBottom: "8px"}}
                 />

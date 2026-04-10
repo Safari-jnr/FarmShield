@@ -11,27 +11,14 @@ export default function RewardsPage() {
     async function fetchData() {
       try {
         const user = getUser();
-        console.log("=== REWARDS DEBUG ===");
-        console.log("Raw user from getUser():", user);
-        
-        // EMERGENCY FIX: Ensure we have a user ID
-        let userId = user?.id;
-        if (!userId) {
-          // Try to extract from phone or use default
-          userId = user?.phone ? parseInt(user.phone.replace(/\D/g, '').slice(-4)) || 1 : 1;
-          console.log("Generated userId:", userId);
-        }
+        const userId = user?.id;
+        if (!userId) { setError("Not logged in"); setLoading(false); return; }
 
-        // Fetch rewards
         const userRewards = await apiFetch(`/rewards/${userId}`);
-        console.log("Rewards API response:", userRewards);
         setRewards(userRewards);
-        
-        // Fetch leaderboard
         const topFarmers = await apiFetch('/rewards/leaderboard/top');
         setLeaderboard(topFarmers || []);
       } catch (err) {
-        console.error("Error fetching rewards:", err);
         setError(`Failed: ${err.message}`);
       } finally {
         setLoading(false);

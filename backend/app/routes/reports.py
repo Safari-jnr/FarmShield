@@ -10,6 +10,15 @@ from datetime import datetime, timedelta
 from app.services.sms_service import SMSService
 import shutil
 import os
+import cloudinary
+import cloudinary.uploader
+
+# Configure Cloudinary (set these env vars on Render)
+cloudinary.config(
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME", ""),
+    api_key=os.getenv("CLOUDINARY_API_KEY", ""),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET", ""),
+)
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
@@ -35,14 +44,22 @@ async def create_report(
     photo: UploadFile = File(None),
     db: Session = Depends(get_db)
 ):
-    # Save photo if provided
+    # Save photo — use Cloudinary if configured, else local fallback
     photo_url = None
-    if photo:
-        photo_path = f"uploads/{photo.filename}"
-        os.makedirs("uploads", exist_ok=True)
-        with open(photo_path, "wb") as buffer:
-            shutil.copyfileobj(photo.file, buffer)
-        photo_url = photo_path
+    if photo and photo.filename:
+        if os.getenv("CLOUDINARY_CLOUD_NAME"):
+            result = cloudinary.uploader.upload(
+                photo.file,
+                folder="farmshield",
+                resource_type="image"
+            )
+            photo_url = result["secure_url"]
+        else:
+            photo_path = f"uploads/{photo.filename}"
+            os.makedirs("uploads", exist_ok=True)
+            with open(photo_path, "wb") as buffer:
+                shutil.copyfileobj(photo.file, buffer)
+            photo_url = photo_path
     
     # Create report
     db_report = ReportDB(
