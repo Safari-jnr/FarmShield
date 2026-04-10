@@ -22,3 +22,15 @@ npm-debug.log*
 # OS
 .DS_Store
 Thumbs.db
+
+# Database
+*.db
+*.sqlite
+
+# Uploads (use cloud storage in production)
+backend/uploads/
+
+# Misc junk
+notepad
+dir
+git
