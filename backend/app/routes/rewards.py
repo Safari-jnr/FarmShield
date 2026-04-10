@@ -42,7 +42,16 @@ async def get_leaderboard(db: Session = Depends(get_db), limit: int = 10):
 async def get_user_rewards(user_id: int, db: Session = Depends(get_db)):
     user = db.query(UserDB).filter(UserDB.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        # Return zeroed defaults instead of 404 — handles stale sessions
+        return {
+            "user_id": user_id,
+            "points": 0,
+            "badge_level": "Seedling",
+            "reports_submitted": 0,
+            "reports_verified": 0,
+            "check_ins": 0,
+            "next_badge_points": 100
+        }
     
     # Calculate points needed for next badge
     next_badge_points = 0
