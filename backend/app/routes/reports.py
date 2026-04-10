@@ -48,12 +48,16 @@ async def create_report(
     photo_url = None
     if photo and photo.filename:
         if os.getenv("CLOUDINARY_CLOUD_NAME"):
-            result = cloudinary.uploader.upload(
-                photo.file,
-                folder="farmshield",
-                resource_type="image"
-            )
-            photo_url = result["secure_url"]
+            try:
+                result = cloudinary.uploader.upload(
+                    photo.file,
+                    folder="farmshield",
+                    resource_type="image"
+                )
+                photo_url = result["secure_url"]
+            except Exception as e:
+                print(f"[CLOUDINARY] Upload failed: {e} — skipping photo")
+                photo_url = None
         else:
             photo_path = f"uploads/{photo.filename}"
             os.makedirs("uploads", exist_ok=True)
