@@ -10,15 +10,6 @@ from datetime import datetime, timedelta
 from app.services.sms_service import SMSService
 import shutil
 import os
-import cloudinary
-import cloudinary.uploader
-
-# Configure Cloudinary (set these env vars on Render)
-cloudinary.config(
-    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME", ""),
-    api_key=os.getenv("CLOUDINARY_API_KEY", ""),
-    api_secret=os.getenv("CLOUDINARY_API_SECRET", ""),
-)
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
@@ -44,26 +35,20 @@ async def create_report(
     photo: UploadFile = File(None),
     db: Session = Depends(get_db)
 ):
-    # Save photo — use Cloudinary if configured, else local fallback
+    # Save photo — base64 encode and store in DB (no external service needed)
     photo_url = None
     if photo and photo.filename:
-        if os.getenv("CLOUDINARY_CLOUD_NAME"):
-            try:
-                result = cloudinary.uploader.upload(
-                    photo.file,
-                    folder="farmshield",
-                    resource_type="image"
-                )
-                photo_url = result["secure_url"]
-            except Exception as e:
-                print(f"[CLOUDINARY] Upload failed: {e} — skipping photo")
-                photo_url = None
-        else:
-            photo_path = f"uploads/{photo.filename}"
-            os.makedirs("uploads", exist_ok=True)
-            with open(photo_path, "wb") as buffer:
-                shutil.copyfileobj(photo.file, buffer)
-            photo_url = photo_path
+        try:
+            import base64
+            contents = await photo.read()
+            if len(contents) > 0:
+                ext = photo.filename.split(".")[-1].lower()
+                mime = f"image/{ext}" if ext in ["jpg","jpeg","png","gif","webp"] else "image/jpeg"
+                b64 = base64.b64encode(contents).decode("utf-8")
+                photo_url = f"data:{mime};base64,{b64}"
+        except Exception as e:
+            print(f"[PHOTO] Failed to process photo: {e}")
+            photo_url = None
     
     # Create report
     db_report = ReportDB(
