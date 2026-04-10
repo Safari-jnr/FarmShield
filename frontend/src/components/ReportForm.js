@@ -26,19 +26,19 @@ export default function ReportForm() {
     try {
       const loc = await getLocation();
       const user = getUser();
+      if (!user?.id) { showToast("Please log in again", "error"); setLoading(false); return; }
       const fd = new FormData();
       fd.append("description", desc || "");
       fd.append("threat_type", threat);
-      fd.append("user_id", user?.id || 1);
+      fd.append("user_id", user.id);
       fd.append("lat", loc.lat);
       fd.append("lng", loc.lon);
       if (photo) fd.append("photo", photo);
       await apiFetch("/reports/", { method: "POST", headers: {}, body: fd });
       showToast("Report submitted — thank you", "success");
       setThreat(""); setDesc(""); setPhoto(null);
-    } catch {
-      showToast("Submitted (demo mode)", "success");
-      setThreat(""); setDesc(""); setPhoto(null);
+    } catch (e) {
+      showToast(`Error: ${e.message}`, "error");
     } finally {
       setLoading(false);
     }
