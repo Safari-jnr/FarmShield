@@ -56,7 +56,16 @@ export default function App() {
   const [page, setPage]     = useState("dashboard");
   const [smsAlert, setSmsAlert] = useState(null);
 
-  useEffect(() => { if (isLoggedIn()) setScreen("app"); }, []);
+  useEffect(() => {
+    // Check if accessing admin panel via hash
+    if (window.location.hash === "#/admin") return;
+    if (isLoggedIn()) setScreen("app");
+  }, []);
+
+  // Serve admin panel at /#/admin
+  if (window.location.hash === "#/admin") {
+    return <AdminDashboard standalone />;
+  }
 
   function handleLogin()  { setScreen("app"); setPage("dashboard"); }
   function handleLogout() { clearSession(); setScreen("landing"); }
@@ -78,7 +87,6 @@ export default function App() {
         {page === "rewards"       && <RewardsPage />}
         {page === "history"       && <ReportHistory />}
         {page === "settings"      && <SettingsPage />}
-        {page === "admin"         && <AdminDashboard />}
         {page === "ussd"          && <USSDSimulator />}
       </div>
       <BottomNav page={page} setPage={setPage} />

@@ -20,7 +20,7 @@ function StatCard({ value, label, color = "#16a34a", icon }) {
   );
 }
 
-export default function AdminDashboard() {
+export default function AdminDashboard({ standalone = false }) {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -29,7 +29,7 @@ export default function AdminDashboard() {
   }, []);
 
   if (loading) return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 300, gap: 10 }}>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", gap: 10 }}>
       <div className="spinner dark" /> <span style={{ color: "#6b7280" }}>Loading dashboard...</span>
     </div>
   );
@@ -37,12 +37,16 @@ export default function AdminDashboard() {
   const maxThreat = Math.max(...(stats?.threat_breakdown?.map(t => t.count) || [1]), 1);
 
   return (
-    <div className="page-shell">
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 13, color: "#6b7280" }}>FarmShield</div>
-        <h1 style={{ fontSize: 26, fontWeight: 800, color: "#14532d", margin: "4px 0" }}>Admin Dashboard</h1>
-        <p style={{ color: "#6b7280", fontSize: 14 }}>Live platform overview</p>
-      </div>
+    <div className="page-shell" style={standalone ? { maxWidth: 900, margin: "0 auto", padding: "32px 24px" } : {}}>
+      {standalone && (
+        <div style={{ background: "#14532d", color: "white", padding: "16px 24px", borderRadius: 12, marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <div style={{ fontSize: 20, fontWeight: 800 }}>🛡️ FarmShield Admin</div>
+            <div style={{ fontSize: 13, opacity: 0.7 }}>Platform Overview</div>
+          </div>
+          <a href="/" style={{ color: "#4ade80", fontSize: 13 }}>← Back to App</a>
+        </div>
+      )}
 
       {/* Stats grid */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12, marginBottom: 24 }}>

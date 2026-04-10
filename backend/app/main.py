@@ -31,23 +31,26 @@ app.add_middleware(
 os.makedirs("uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
-# Create tables, then patch any missing columns
+# Create tables
 Base.metadata.create_all(bind=engine)
 
-with engine.connect() as conn:
-    for col, definition in [
-        ("check_ins", "INTEGER DEFAULT 0"),
-        ("points", "INTEGER DEFAULT 0"),
-        ("reports_submitted", "INTEGER DEFAULT 0"),
-        ("reports_verified", "INTEGER DEFAULT 0"),
-        ("badge_level", "VARCHAR DEFAULT 'Seedling'"),
-        ("email", "VARCHAR"),
-    ]:
-        try:
-            conn.execute(text(f"ALTER TABLE users ADD COLUMN {col} {definition}"))
-            conn.commit()
-        except Exception:
-            pass  # column already exists
+# SQLite-only column migrations (PostgreSQL handles this via create_all)
+db_url = os.getenv("DATABASE_URL", "sqlite:///./farmshield.db")
+if "sqlite" in db_url:
+    with engine.connect() as conn:
+        for col, definition in [
+            ("check_ins", "INTEGER DEFAULT 0"),
+            ("points", "INTEGER DEFAULT 0"),
+            ("reports_submitted", "INTEGER DEFAULT 0"),
+            ("reports_verified", "INTEGER DEFAULT 0"),
+            ("badge_level", "VARCHAR DEFAULT 'Seedling'"),
+            ("email", "VARCHAR"),
+        ]:
+            try:
+                conn.execute(text(f"ALTER TABLE users ADD COLUMN {col} {definition}"))
+                conn.commit()
+            except Exception:
+                pass
 
 # Include routers
 app.include_router(auth.router)

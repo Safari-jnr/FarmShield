@@ -1,7 +1,7 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import Toast, { useToast } from "../components/Toast";
-import { apiFetch, getLocation, getUser, clearSession } from "../services/api";
+import { apiFetch, getLocation, getUser, clearSession, invalidateCache } from "../services/api";
 import { RISK_DESC } from "../constants";
 
 function WeatherCard({ weather }) {
@@ -72,6 +72,10 @@ export default function DashboardPage({ setPage, onLogout }) {
   }, []);
 
   async function handleCheckIn() {
+    // Optimistic update — show result immediately
+    const next = !checkedIn;
+    setCheckedIn(next);
+    if (next) setPoints(p => p + 5);
     setLoading(true);
     try {
       const loc = await getLocation();
@@ -79,17 +83,18 @@ export default function DashboardPage({ setPage, onLogout }) {
       fd.append("user_id", user?.id || 1);
       fd.append("lat", loc.lat);
       fd.append("lng", loc.lon);
-      const res = await apiFetch("/checkins/", { method: "POST", headers: {}, body: fd });
-      const next = !checkedIn;
-      setCheckedIn(next);
-      showToast(next ? `Checked in! +5 points` : "Checked out safely", "success");
-      if (next) setPoints(p => p + 5);
+      await apiFetch("/checkins/", { method: "POST", headers: {}, body: fd });
+      invalidateCache(`/rewards/${user?.id}`);
+      showToast(next ? "Checked in! +5 points" : "Checked out safely", "success");
     } catch (e) {
-      // "Already checked in today" is still a success state
       const alreadyIn = e.message?.includes("Already checked in");
-      const next = !checkedIn;
-      setCheckedIn(next);
-      showToast(alreadyIn ? "Already checked in today" : (next ? "Checked in (demo)" : "Checked out (demo)"), alreadyIn ? "error" : "success");
+      if (alreadyIn) {
+        showToast("Already checked in today", "error");
+        setCheckedIn(true); // revert to checked-in state
+        setPoints(p => p - 5);
+      } else {
+        showToast(next ? "Checked in (offline mode)" : "Checked out", "success");
+      }
     } finally {
       setLoading(false);
     }
