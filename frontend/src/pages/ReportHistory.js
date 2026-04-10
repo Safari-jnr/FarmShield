@@ -4,15 +4,13 @@ import { apiFetch, getUser } from "../services/api";
 export default function ReportHistory() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [confirming, setConfirming] = useState(null);
+  const user = getUser();
 
   useEffect(() => {
     async function fetchReports() {
       try {
-        const user = getUser();
-        if (!user?.id) {
-          setLoading(false);
-          return;
-        }
+        if (!user?.id) { setLoading(false); return; }
         const data = await apiFetch(`/reports/my-reports?user_id=${user.id}`);
         setReports(data.reports || []);
       } catch (err) {
@@ -23,6 +21,16 @@ export default function ReportHistory() {
     }
     fetchReports();
   }, []);
+
+  async function handleConfirm(reportId) {
+    setConfirming(reportId);
+    try {
+      await apiFetch(`/reports/confirm/${reportId}?user_id=${user.id}`, { method: "POST" });
+      setReports(r => r.map(rep => rep.id === reportId ? { ...rep, verified: true } : rep));
+    } catch {} finally {
+      setConfirming(null);
+    }
+  }
 
   if (loading) return <div style={{padding: "20px"}}>Loading reports...</div>;
 
@@ -68,6 +76,15 @@ export default function ReportHistory() {
                 {new Date(report.created_at).toLocaleDateString()} • 
                 {report.verified ? ' ✅ Verified (+10 pts)' : ' ⏳ Pending'}
               </div>
+              {!report.verified && (
+                <button
+                  onClick={() => handleConfirm(report.id)}
+                  disabled={confirming === report.id}
+                  style={{ marginTop: 8, padding: "6px 14px", background: "#f0fdf4", border: "1px solid #22c55e", borderRadius: 8, color: "#16a34a", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+                >
+                  {confirming === report.id ? "Confirming..." : "👍 Confirm this threat"}
+                </button>
+              )}
             </div>
           ))}
         </div>

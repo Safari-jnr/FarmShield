@@ -4,6 +4,26 @@ import Toast, { useToast } from "../components/Toast";
 import { apiFetch, getLocation, getUser, clearSession } from "../services/api";
 import { RISK_DESC } from "../constants";
 
+function WeatherCard({ weather }) {
+  if (!weather) return null;
+  const bg = weather.risk_level === "RED" ? "#fef2f2" : weather.risk_level === "YELLOW" ? "#fffbeb" : "#f0fdf4";
+  const color = weather.risk_level === "RED" ? "#dc2626" : weather.risk_level === "YELLOW" ? "#d97706" : "#16a34a";
+  return (
+    <div style={{ background: bg, borderRadius: 12, padding: "12px 16px", marginBottom: 16, border: `1px solid ${color}22` }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 2 }}>Today's Weather</div>
+          <div style={{ fontWeight: 700, color, fontSize: 15 }}>{weather.farm_advice}</div>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontSize: 24, fontWeight: 800, color }}>{weather.temp}°C</div>
+          <div style={{ fontSize: 11, color: "#9ca3af" }}>💧 {weather.humidity}%</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage({ setPage, onLogout }) {
   const user = getUser();
   const [risk,      setRisk]      = useState("GREEN");
@@ -12,8 +32,9 @@ export default function DashboardPage({ setPage, onLogout }) {
   const [alert,     setAlert]     = useState(null);
   const [loading,   setLoading]   = useState(false);
   const [toast,     showToast]    = useToast();
-  const [points,    setPoints]    = useState(0);      // ADD: points state
-  const [badge,     setBadge]     = useState("Seedling"); // ADD: badge state
+  const [points,    setPoints]    = useState(0);
+  const [badge,     setBadge]     = useState("Seedling");
+  const [weather,   setWeather]   = useState(null);
 
   useEffect(() => {
     async function poll() {
@@ -38,8 +59,14 @@ export default function DashboardPage({ setPage, onLogout }) {
     }
     
     poll();
-    fetchRewards();  // ADD
-    
+    fetchRewards();
+
+    // Fetch weather
+    getLocation().then(loc => {
+      apiFetch(`/weather/current?lat=${loc.lat}&lon=${loc.lon}`)
+        .then(w => setWeather(w)).catch(() => {});
+    });
+
     const id = setInterval(poll, 5 * 60 * 1000);
     return () => clearInterval(id);
   }, []);
@@ -120,6 +147,9 @@ export default function DashboardPage({ setPage, onLogout }) {
           <div style={{ fontSize: '16px', fontWeight: '600' }}>🌱 {badge}</div>
         </div>
       </div>
+
+      {/* Weather */}
+      <WeatherCard weather={weather} />
 
       {alert && (
         <div className="alert-banner">

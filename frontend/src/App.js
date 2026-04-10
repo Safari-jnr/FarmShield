@@ -12,6 +12,8 @@ import NotificationHistory from "./pages/NotificationHistory";
 import RewardsPage from "./pages/RewardsPage";
 import ReportHistory from "./pages/ReportHistory";
 import SettingsPage from "./pages/Settings";
+import AdminDashboard from "./pages/AdminDashboard";
+import USSDSimulator from "./pages/USSDSimulator";
 import BottomNav from "./components/BottomNav";
 import Logo from "./components/Logo";
 import SMSNotificationBanner from "./components/SMSNotificationBanner";
@@ -26,6 +28,8 @@ const NAV_ITEMS = [
   { id: "rewards",   label: "Rewards", icon: <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg> },
   { id: "history",   label: "My Reports", icon: <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> },
   { id: "settings",  label: "Settings", icon: <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg> },
+  { id: "ussd",      label: "USSD Demo", icon: <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> },
+  { id: "admin",     label: "Admin", icon: <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> },
 ];
 
 function SidebarNav({ page, setPage, onLogout }) {
@@ -74,6 +78,8 @@ export default function App() {
         {page === "rewards"       && <RewardsPage />}
         {page === "history"       && <ReportHistory />}
         {page === "settings"      && <SettingsPage />}
+        {page === "admin"         && <AdminDashboard />}
+        {page === "ussd"          && <USSDSimulator />}
       </div>
       <BottomNav page={page} setPage={setPage} />
     </div>

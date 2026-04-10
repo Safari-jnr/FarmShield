@@ -181,6 +181,22 @@ async def get_sms_logs():
         "note": "This is MOCK SMS. Real Africa's Talking integration pending."
     }
 
+@router.post("/confirm/{report_id}")
+async def confirm_report(report_id: int, user_id: int = Query(...), db: Session = Depends(get_db)):
+    """Crowd-verify: another farmer confirms a threat is real."""
+    report = db.query(ReportDB).filter(ReportDB.id == report_id).first()
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+    if report.user_id == user_id:
+        raise HTTPException(status_code=400, detail="Cannot confirm your own report")
+    report.verified = True
+    # Award points to original reporter
+    reporter = db.query(UserDB).filter(UserDB.id == report.user_id).first()
+    if reporter:
+        reporter.points += 5
+    db.commit()
+    return {"message": "Report confirmed — community verified", "report_id": report_id}
+
 @router.get("/my-reports")
 async def get_my_reports(
     user_id: int = Query(...),

@@ -12,19 +12,19 @@ All endpoints return JSON. No authentication required for read endpoints.
 `POST /auth/register`
 ```json
 {
-  "name": "Adebayo Musa",
-  "phone": "+2348012345678",
+  "name": "Adegboyega Faruq",
+  "phone": "+2349023527870",
   "email": "farmer@example.com",
   "password": "yourpassword",
   "language": "en"
 }
-```
+
 Returns: `{ access_token, user: { id, name, phone, email, points, badge_level } }`
 
 ### Login
 `POST /auth/login`
 ```json
-{ "phone": "+2348012345678", "password": "yourpassword" }
+{ "phone": "+2349023527870", "password": "yourpassword" }
 ```
 Returns: `{ access_token, user: { id, name, phone, email, points, badge_level } }`
 
@@ -128,7 +128,7 @@ Returns soil health analysis for a GPS location.
   "phosphorus": 28.0,
   "potassium": 180.0,
   "soil_health": "Good",
-  "recommendations": ["✅ pH is optimal", "🌱 Best crops: Maize, Rice, Beans"],
+  "recommendations": [" pH is optimal", "🌱 Best crops: Maize, Rice, Beans"],
   "source": "Simulated"
 }
 ```

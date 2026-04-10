@@ -6,6 +6,8 @@ from app.routes import auth, checkins, safety, reports, rewards, soil, ussd
 from app.routes import map as map_router
 from app.routes import notifications
 from app.routes import settings
+from app.routes import weather
+from app.routes import admin
 from sqlalchemy import text
 import os
 from dotenv import load_dotenv
@@ -56,6 +58,8 @@ app.include_router(ussd.router)
 app.include_router(map_router.router)
 app.include_router(notifications.router)
 app.include_router(settings.router)
+app.include_router(weather.router)
+app.include_router(admin.router)
 
 @app.get("/")
 async def root():
