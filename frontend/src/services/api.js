@@ -4,11 +4,15 @@ const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
 const cache = new Map();
 const CACHE_TTL = 30000; // 30 seconds
 
+// These paths should never be cached (always fresh)
+const NO_CACHE_PATHS = ["/notifications/history", "/reports/my-reports", "/admin/stats"];
+
 export async function apiFetch(path, opts = {}) {
   const isGet = !opts.method || opts.method === "GET";
+  const shouldCache = isGet && !NO_CACHE_PATHS.some(p => path.startsWith(p));
 
   // Return cached response for GET requests
-  if (isGet && cache.has(path)) {
+  if (shouldCache && cache.has(path)) {
     const { data, ts } = cache.get(path);
     if (Date.now() - ts < CACHE_TTL) return data;
   }
@@ -25,7 +29,7 @@ export async function apiFetch(path, opts = {}) {
     throw new Error(err.detail || `Request failed: ${res.status}`);
   }
   const data = await res.json();
-  if (isGet) cache.set(path, { data, ts: Date.now() });
+  if (shouldCache) cache.set(path, { data, ts: Date.now() });
   return data;
 }
 

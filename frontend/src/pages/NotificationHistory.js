@@ -22,11 +22,17 @@ export default function NotificationHistory() {
   const [filter, setFilter]   = useState("all");
   const user = getUser();
 
-  useEffect(() => {
+  function fetchLogs() {
     if (!user?.id) { setLoading(false); return; }
+    setLoading(true);
     apiFetch(`/notifications/history?user_id=${user.id}`)
       .then(data => { setLogs(data.logs || []); setLoading(false); })
       .catch(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    const timer = setTimeout(fetchLogs, 500);
+    return () => clearTimeout(timer);
   }, []);
 
   const filtered = filter === "all" ? logs : logs.filter(l => l.channel === filter);
@@ -53,6 +59,9 @@ export default function NotificationHistory() {
         <p style={{ color: "#6b7280", fontSize: 14, marginTop: 6 }}>
           All notifications sent to you — SMS, email and in-app.
         </p>
+        <button onClick={fetchLogs} style={{ marginTop: 8, padding: "6px 14px", background: "#f0fdf4", border: "1px solid #22c55e", borderRadius: 8, color: "#16a34a", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+          🔄 Refresh
+        </button>
       </div>
 
       {/* Summary cards */}
