@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, Form, File, UploadFile, Query
+from fastapi import APIRouter, Depends, HTTPException, Form, File, UploadFile, Query, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from app.database import get_db
+from app.database import get_db, SessionLocal
 from app.models.database import ReportDB, UserDB, NotificationLogDB
 from app.services.email_service import send_alert_email
 from pydantic import BaseModel
@@ -12,6 +12,42 @@ import shutil
 import os
 
 router = APIRouter(prefix="/reports", tags=["reports"])
+
+
+def send_notifications_background(report_id: int, threat_type: str,
+                                   description: str, lat: float, lng: float,
+                                   reporter_name: str):
+    """Runs in background — does not block the API response."""
+    db = SessionLocal()
+    try:
+        all_users = db.query(UserDB).all()
+        for u in all_users:
+            db.add(NotificationLogDB(
+                user_id=u.id, channel="in_app", recipient=u.phone,
+                subject=f"{threat_type.replace('_',' ').title()} Alert",
+                message=f"⚠️ {threat_type.replace('_',' ').title()} reported near your area. {description or ''}".strip(),
+                threat_type=threat_type, status="sent", created_at=datetime.utcnow()
+            ))
+            if u.email:
+                ok = send_alert_email(u.email, threat_type, description or "",
+                                      location=f"{lat:.4f}, {lng:.4f}",
+                                      reporter=reporter_name)
+                db.add(NotificationLogDB(
+                    user_id=u.id, channel="email", recipient=u.email,
+                    subject=f"{threat_type.replace('_',' ').title()} Alert",
+                    message=description or "", threat_type=threat_type,
+                    status="sent" if ok else "failed", created_at=datetime.utcnow()
+                ))
+            db.add(NotificationLogDB(
+                user_id=u.id, channel="sms", recipient=u.phone,
+                message=f"FarmShield: {threat_type.replace('_',' ').title()} reported near you. Stay safe.",
+                threat_type=threat_type, status="mock", created_at=datetime.utcnow()
+            ))
+        db.commit()
+    except Exception as e:
+        print(f"[NOTIFY] Background notification failed: {e}")
+    finally:
+        db.close()
 
 class ReportResponse(BaseModel):
     id: int
@@ -27,6 +63,7 @@ class ReportResponse(BaseModel):
 
 @router.post("/", response_model=ReportResponse)
 async def create_report(
+    background_tasks: BackgroundTasks,
     user_id: int = Form(...),
     description: str = Form(""),
     threat_type: str = Form(...),
@@ -82,35 +119,13 @@ async def create_report(
     db.commit()
     db.refresh(db_report)
 
-    # ── Notify all users ──────────────────────────────────────────────────
-    all_users = db.query(UserDB).all()
-    for u in all_users:
-        # In-app
-        db.add(NotificationLogDB(
-            user_id=u.id, channel="in_app", recipient=u.phone,
-            subject=f"{threat_type.replace('_',' ').title()} Alert",
-            message=f"⚠️ {threat_type.replace('_',' ').title()} reported near your area. {description or ''}".strip(),
-            threat_type=threat_type, status="sent", created_at=datetime.utcnow()
-        ))
-        # Email
-        if u.email:
-            ok = send_alert_email(u.email, threat_type, description or "",
-                                  location=f"{lat:.4f}, {lng:.4f}",
-                                  reporter=user.name if user else "A farmer")
-            db.add(NotificationLogDB(
-                user_id=u.id, channel="email", recipient=u.email,
-                subject=f"{threat_type.replace('_',' ').title()} Alert",
-                message=description or "", threat_type=threat_type,
-                status="sent" if ok else "failed", created_at=datetime.utcnow()
-            ))
-        # SMS (mock)
-        db.add(NotificationLogDB(
-            user_id=u.id, channel="sms", recipient=u.phone,
-            message=f"FarmShield: {threat_type.replace('_',' ').title()} reported near you. Stay safe.",
-            threat_type=threat_type, status="mock", created_at=datetime.utcnow()
-        ))
-    db.commit()
-    
+    # Fire notifications in background — don't block the response
+    background_tasks.add_task(
+        send_notifications_background,
+        db_report.id, threat_type, description or "",
+        lat, lng, user.name if user else "A farmer"
+    )
+
     return {
         "id": db_report.id,
         "user_id": db_report.user_id,
@@ -119,7 +134,7 @@ async def create_report(
         "verified": db_report.verified,
         "created_at": db_report.created_at,
         "reward_points": 10,
-        "message": f"Report submitted! +10 points earned. Total: {user.points if user else 0} points. Verification pending."
+        "message": f"Report submitted! +10 points earned. Total: {user.points if user else 0} points."
     }
 
 @router.get("/verified")

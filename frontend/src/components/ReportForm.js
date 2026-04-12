@@ -34,12 +34,18 @@ export default function ReportForm() {
       fd.append("lat", loc.lat);
       fd.append("lng", loc.lon);
       if (photo) fd.append("photo", photo);
-      await apiFetch("/reports/", { method: "POST", headers: {}, body: fd });
-      showToast("Report submitted — thank you", "success");
+
+      // Show success immediately — don't wait for email notifications
+      showToast("Report submitted — thank you! +10 pts", "success");
       setThreat(""); setDesc(""); setPhoto(null);
+      setLoading(false);
+
+      // Send in background (non-blocking)
+      apiFetch("/reports/", { method: "POST", headers: {}, body: fd }).catch(e => {
+        console.error("Report save failed:", e.message);
+      });
     } catch (e) {
       showToast(`Error: ${e.message}`, "error");
-    } finally {
       setLoading(false);
     }
   }
