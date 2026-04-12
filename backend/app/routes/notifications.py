@@ -90,14 +90,13 @@ async def send_threat_alert(req: NotifyRequest, db: Session = Depends(get_db)):
 
 @router.get("/history")
 async def get_notification_history(
-    user_id: Optional[int] = Query(None),
+    user_id: int = Query(...),
     db: Session = Depends(get_db)
 ):
-    """Get all notifications — optionally filtered by user."""
-    query = db.query(NotificationLogDB)
-    if user_id:
-        query = query.filter(NotificationLogDB.user_id == user_id)
-    logs = query.order_by(NotificationLogDB.created_at.desc()).limit(100).all()
+    """Get notifications for a specific user only."""
+    logs = db.query(NotificationLogDB).filter(
+        NotificationLogDB.user_id == user_id
+    ).order_by(NotificationLogDB.created_at.desc()).limit(100).all()
 
     return {
         "count": len(logs),

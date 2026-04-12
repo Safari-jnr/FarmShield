@@ -71,5 +71,6 @@ async def root():
     return {"message": "FarmShield API is running"}
 
 @app.get("/health")
+@app.head("/health")
 async def health_check():
     return {"status": "healthy", "service": "farmshield-api", "database": "connected"}

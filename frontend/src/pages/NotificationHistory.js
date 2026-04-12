@@ -23,11 +23,8 @@ export default function NotificationHistory() {
   const user = getUser();
 
   useEffect(() => {
-    const url = user?.id
-      ? `/notifications/history?user_id=${user.id}`
-      : `/notifications/history`;
-
-    apiFetch(url)
+    if (!user?.id) { setLoading(false); return; }
+    apiFetch(`/notifications/history?user_id=${user.id}`)
       .then(data => { setLogs(data.logs || []); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);
